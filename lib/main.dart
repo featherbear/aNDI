@@ -50,11 +50,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-
   static const platform = const MethodChannel('samples.flutter.dev/battery');
   String _batteryLevel = 'Unknown battery level.';
 
   Future<void> _getBatteryLevel() async {
+    await platform.invokeMethod('initNSD');
+
     String batteryLevel;
     try {
       final int result = await platform.invokeMethod('getBatteryLevel');
