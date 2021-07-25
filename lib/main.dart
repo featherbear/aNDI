@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:flutter_ndi/flutter_ndi.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -50,23 +52,18 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  static const platform = const MethodChannel('samples.flutter.dev/battery');
-  String _batteryLevel = 'Unknown battery level.';
 
-  Future<void> _getBatteryLevel() async {
-    await platform.invokeMethod('initNSD');
+  String _platformVersion = 'Unknown platform.';
 
-    String batteryLevel;
-    try {
-      final int result = await platform.invokeMethod('getBatteryLevel');
-      batteryLevel = 'Battery level at $result % .';
-    } on PlatformException catch (e) {
-      batteryLevel = "Failed to get battery level: '${e.message}'.";
-    }
-
+  Future<void> _getPlatformVersion() async {
+    String ver = (await FlutterNdi.platformVersion)!;
     setState(() {
-      _batteryLevel = batteryLevel;
+      _platformVersion = ver;
     });
+  }
+
+  Future<void> _doNDI() async {
+    await FlutterNdi.initPlugin();
   }
 
   void _incrementCounter() {
@@ -122,10 +119,14 @@ class _MyHomePageState extends State<MyHomePage> {
               style: Theme.of(context).textTheme.headline4,
             ),
             ElevatedButton(
-              child: Text('Get Battery Level'),
-              onPressed: _getBatteryLevel,
+              child: Text('Get Platform Version'),
+              onPressed: _getPlatformVersion,
             ),
-            Text(_batteryLevel),
+            ElevatedButton(
+              child: Text('NDI Tests'),
+              onPressed: _doNDI,
+            ),
+            Text(_platformVersion),
           ],
         ),
       ),
