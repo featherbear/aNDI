@@ -1,9 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_ndi/flutter_ndi.dart';
+import 'package:flutter_ndi/libndi_bindings.dart';
+
+import 'imageUtils.dart';
 
 void main() {
   runApp(MyApp());
@@ -54,6 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
   String _platformVersion = 'Unknown platform.';
+  String _sources = "No sources.";
+  Widget X = Text("-not init-");
 
   Future<void> _getPlatformVersion() async {
     String ver = (await FlutterNdi.platformVersion)!;
@@ -64,7 +70,29 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _doNDI() async {
     await FlutterNdi.initPlugin();
+    var res = FlutterNdi.findSources();
+
+// https://medium.com/@hugand/capture-photos-from-camera-using-image-stream-with-flutter-e9af94bc2bee
+
+    if (res.isNotEmpty) {
+      FlutterNdi.listenToFrameData(res.first).listen((_event) async {
+        Map event = _event;
+        X = await compute(Uint8List_to_Image,
+            [event['data'], event['width'], event['height']]);
+
+        setState(() {});
+      });
+
+      setState(() {
+        _sources = res.first.address;
+      });
+    } else {
+      X = Text("Nope");
+      setState(() {});
+    }
   }
+
+  // FlutterNdi.
 
   void _incrementCounter() {
     setState(() {
@@ -127,6 +155,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: _doNDI,
             ),
             Text(_platformVersion),
+            Text(_sources),
+            X
           ],
         ),
       ),
