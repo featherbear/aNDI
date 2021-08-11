@@ -60,6 +60,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget X = Text("-not init-");
   int _ncount = 0;
 
+  bool processingReady = true;
+
   Future<void> _doNDI() async {
     await FlutterNdi.initPlugin();
     var res = FlutterNdi.findSources();
@@ -67,11 +69,22 @@ class _MyHomePageState extends State<MyHomePage> {
 // https://medium.com/@hugand/capture-photos-from-camera-using-image-stream-with-flutter-e9af94bc2bee
 
     if (res.isNotEmpty) {
+      // TODO: Don't process all frames
+      // If too many frames are received at the same time, too many compute threads are started
+
+      // https://api.dart.dev/stable/2.13.4/dart-async/StreamConsumer-class.html
+      // https://dart.dev/tutorials/language/streams
+      // https://dart.academy/streams-and-sinks-in-dart-and-flutter/
+      // https://kikt.gitee.io/flutter-doc/dart-async/Stream/pipe.html
       FlutterNdi.listenToFrameData(res.first).cast<VideoFrameData>()
           // .cast<Future<void> Function(Future<void> Function(VideoFrameData))>()
           .listen((frame) async {
         _ncount++;
-        X = await compute(VideoFrameData_to_Image, frame);
+        if (processingReady) {
+          processingReady = false;
+          X = await compute(VideoFrameData_to_Image, frame);
+          processingReady = true;
+        }
         setState(() {});
       });
 
