@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'aNDI',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'aNDI - NDI Tools'),
     );
   }
 }
@@ -55,18 +55,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  String _platformVersion = 'Unknown platform.';
   String _sources = "No sources.";
-  Widget X = Text("-not init-");
 
-  Future<void> _getPlatformVersion() async {
-    String ver = (await FlutterNdi.platformVersion)!;
-    setState(() {
-      _platformVersion = ver;
-    });
-  }
+  Widget X = Text("-not init-");
+  int _ncount = 0;
 
   Future<void> _doNDI() async {
     await FlutterNdi.initPlugin();
@@ -75,96 +67,46 @@ class _MyHomePageState extends State<MyHomePage> {
 // https://medium.com/@hugand/capture-photos-from-camera-using-image-stream-with-flutter-e9af94bc2bee
 
     if (res.isNotEmpty) {
-      FlutterNdi.listenToFrameData(res.first).listen((_event) async {
-        Map event = _event;
-        X = await compute(Uint8List_to_Image,
-            [event['data'], event['width'], event['height']]);
-
+      FlutterNdi.listenToFrameData(res.first).cast<VideoFrameData>()
+          // .cast<Future<void> Function(Future<void> Function(VideoFrameData))>()
+          .listen((frame) async {
+        _ncount++;
+        X = await compute(VideoFrameData_to_Image, frame);
         setState(() {});
       });
 
       setState(() {
-        _sources = res.first.address;
+        _sources = res
+            .map((e) => e.address)
+            .reduce((value, element) => value + "\n" + element);
       });
     } else {
-      X = Text("Nope");
+      X = Text("No source found");
       setState(() {});
     }
   }
 
-  // FlutterNdi.
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-            ElevatedButton(
-              child: Text('Get Platform Version'),
-              onPressed: _getPlatformVersion,
-            ),
-            ElevatedButton(
-              child: Text('NDI Tests'),
-              onPressed: _doNDI,
-            ),
-            Text(_platformVersion),
+            X,
+            Text(_ncount.toString()),
             Text(_sources),
-            X
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        onPressed: _doNDI,
+        tooltip: 'Start',
+        child: Icon(Icons.play_arrow),
+      ),
     );
   }
 }
