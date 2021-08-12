@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _receivedFrameCount = 0;
   bool processingReady = true;
 
-  List<NDISource> _sources = [];
+  List<NDISource>? _sources;
 
   Future<void> _doFindNDI() async {
     await FlutterNdi.initPlugin();
@@ -123,15 +123,16 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             displaySource ?? Text("NDI not started"),
             Text(_receivedFrameCount.toString()),
-            // Text(_sources.length.toString())
-            ..._sources.isNotEmpty
-                ? _sources
-                    .map((source) => ElevatedButton(
-                          onPressed: () => {_connectNDI(source)},
-                          child: Text("${source.name} (${source.address})"),
-                        ))
-                    .toList()
-                : [Text("No sources found")]
+            ...((_sources != null)
+                ? (_sources!.isNotEmpty
+                    ? _sources!
+                        .map((source) => ElevatedButton(
+                              onPressed: () => {_connectNDI(source)},
+                              child: Text("${source.name} (${source.address})"),
+                            ))
+                        .toList()
+                    : [Text("No sources found")])
+                : [Text("Begin by searching for sources")])
           ],
         ),
       ),
