@@ -57,7 +57,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String _sources = "No sources.";
 
-  Widget X = Text("-not init-");
+  Widget? displaySource;
+
   int _ncount = 0;
 
   bool processingReady = true;
@@ -76,15 +77,22 @@ class _MyHomePageState extends State<MyHomePage> {
       // https://dart.dev/tutorials/language/streams
       // https://dart.academy/streams-and-sinks-in-dart-and-flutter/
       // https://kikt.gitee.io/flutter-doc/dart-async/Stream/pipe.html
-      FlutterNdi.listenToFrameData(res.first).cast<VideoFrameData>()
-          // .cast<Future<void> Function(Future<void> Function(VideoFrameData))>()
+      FlutterNdi.listenToFrameData(res.first)
+          .cast<VideoFrameData>()
           .listen((frame) async {
         _ncount++;
         if (processingReady) {
           processingReady = false;
-          X = await compute(VideoFrameData_to_Image, frame);
+
+          RGBAFrame frameData = await compute<VideoFrameData, RGBAFrame>(
+              VideoFrameData_to_RGBAFrame, frame);
+
+          // https://github.com/flutter/flutter/issues/33641
+          displaySource = Image.memory(frameData, gaplessPlayback: true);
+          // MemoryImage
           processingReady = true;
         }
+
         setState(() {});
       });
 
@@ -94,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
             .reduce((value, element) => value + "\n" + element);
       });
     } else {
-      X = Text("No source found");
+      displaySource = Text("No source found");
       setState(() {});
     }
   }
@@ -109,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            X,
+            displaySource ?? Text("NDI not started"),
             Text(_ncount.toString()),
             Text(_sources),
           ],
