@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -55,56 +56,59 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String _sources = "No sources.";
-
   Widget? displaySource;
 
-  int _ncount = 0;
-
+  int _receivedFrameCount = 0;
   bool processingReady = true;
 
-  Future<void> _doNDI() async {
+  List<NDISource> _sources = [];
+
+  Future<void> _doFindNDI() async {
     await FlutterNdi.initPlugin();
-    var res = FlutterNdi.findSources();
+    var sources = FlutterNdi.findSources(); // Find sources in func stack
 
-// https://medium.com/@hugand/capture-photos-from-camera-using-image-stream-with-flutter-e9af94bc2bee
+    setState(() {
+      _sources = sources;
+    });
+  }
 
-    if (res.isNotEmpty) {
-      // TODO: Don't process all frames
-      // If too many frames are received at the same time, too many compute threads are started
+  Stream? activeSource;
 
-      // https://api.dart.dev/stable/2.13.4/dart-async/StreamConsumer-class.html
-      // https://dart.dev/tutorials/language/streams
-      // https://dart.academy/streams-and-sinks-in-dart-and-flutter/
-      // https://kikt.gitee.io/flutter-doc/dart-async/Stream/pipe.html
-      FlutterNdi.listenToFrameData(res.first)
-          .cast<VideoFrameData>()
-          .listen((frame) async {
-        _ncount++;
-        if (processingReady) {
-          processingReady = false;
-
-          RGBAFrame frameData = await compute<VideoFrameData, RGBAFrame>(
-              VideoFrameData_to_RGBAFrame, frame);
-
-          // https://github.com/flutter/flutter/issues/33641
-          displaySource = Image.memory(frameData, gaplessPlayback: true);
-          // MemoryImage
-          processingReady = true;
-        }
-
-        setState(() {});
-      });
-
-      setState(() {
-        _sources = res
-            .map((e) => e.address)
-            .reduce((value, element) => value + "\n" + element);
-      });
-    } else {
-      displaySource = Text("No source found");
-      setState(() {});
+  Future<void> _connectNDI(NDISource source) async {
+    if (activeSource != null) {
+      FlutterNdi.stopListen(activeSource as ReceivePort);
     }
+
+    _receivedFrameCount = 0;
+    processingReady = true;
+
+    // https://medium.com/@hugand/capture-photos-from-camera-using-image-stream-with-flutter-e9af94bc2bee
+
+    // TODO: Don't process all frames
+    // If too many frames are received at the same time, too many compute threads are started
+
+    // https://api.dart.dev/stable/2.13.4/dart-async/StreamConsumer-class.html
+    // https://dart.dev/tutorials/language/streams
+    // https://dart.academy/streams-and-sinks-in-dart-and-flutter/
+    // https://kikt.gitee.io/flutter-doc/dart-async/Stream/pipe.html
+    activeSource = FlutterNdi.listenToFrameData(source).cast<VideoFrameData>();
+
+    activeSource!.listen((frame) async {
+      _receivedFrameCount++;
+      if (processingReady) {
+        processingReady = false;
+
+        RGBAFrame frameData = await compute<VideoFrameData, RGBAFrame>(
+            VideoFrameData_to_RGBAFrame, frame);
+
+        // https://github.com/flutter/flutter/issues/33641
+        displaySource = Image.memory(frameData, gaplessPlayback: true);
+        // MemoryImage
+        processingReady = true;
+      }
+
+      setState(() {});
+    });
   }
 
   @override
@@ -118,15 +122,23 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             displaySource ?? Text("NDI not started"),
-            Text(_ncount.toString()),
-            Text(_sources),
+            Text(_receivedFrameCount.toString()),
+            // Text(_sources.length.toString())
+            ..._sources.isNotEmpty
+                ? _sources
+                    .map((source) => ElevatedButton(
+                          onPressed: () => {_connectNDI(source)},
+                          child: Text("${source.name} (${source.address})"),
+                        ))
+                    .toList()
+                : [Text("No sources found")]
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _doNDI,
-        tooltip: 'Start',
-        child: Icon(Icons.play_arrow),
+        onPressed: _doFindNDI,
+        tooltip: 'Find sources',
+        child: Icon(Icons.autorenew),
       ),
     );
   }
