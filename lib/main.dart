@@ -72,11 +72,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Stream? activeSource;
+  ReceivePort? activeSource;
 
   Future<void> _connectNDI(NDISource source) async {
     if (activeSource != null) {
-      FlutterNdi.stopListen(activeSource as ReceivePort);
+      FlutterNdi.stopListen(activeSource!);
+      // activeSource = null;
     }
 
     _receivedFrameCount = 0;
@@ -91,9 +92,10 @@ class _MyHomePageState extends State<MyHomePage> {
     // https://dart.dev/tutorials/language/streams
     // https://dart.academy/streams-and-sinks-in-dart-and-flutter/
     // https://kikt.gitee.io/flutter-doc/dart-async/Stream/pipe.html
-    activeSource = FlutterNdi.listenToFrameData(source).cast<VideoFrameData>();
 
-    activeSource!.listen((frame) async {
+    (activeSource = FlutterNdi.listenToFrameData(source))
+        .cast<VideoFrameData>()
+        .listen((frame) async {
       _receivedFrameCount++;
       if (processingReady) {
         processingReady = false;
