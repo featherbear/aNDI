@@ -1,16 +1,15 @@
-# andi
+# aNDI - NDI Tools (currently only for Android)
 
-A new Flutter project.
+> Read more: https://featherbear.cc/blog/post/andi-ndi-tools-for-android/
 
-## Getting Started
+aNDI is a collection of NDI utilities (for Android devices).  
+In the future I wish to make this cross-platform, but I'm a bad programmer and don't know how to efficiently decode video frames and get more than 2fps :(((  
+Anyway yeah, work in progress!
 
-This project is a starting point for a Flutter application.
+* [flutter-ndi](https://github.com/featherbear/flutter-ndi) - Follow the instructions to get the NDI SDK and library files.
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## License
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This software is licensed under the MIT license, as can be viewed [here](LICENSE.md).  
