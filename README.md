@@ -2,7 +2,7 @@
 
 > Read more: https://featherbear.cc/blog/post/andi-ndi-tools-for-android/
 
-aNDI is a collection of NDI utilities (for Android devices).  
+aNDI is (to be) a collection of NDI utilities (for Android devices).  
 
 In the future I wish to make this cross-platform, but I'm a bad programmer and don't know how to efficiently decode video frames and get more than 2fps :(((  
 
