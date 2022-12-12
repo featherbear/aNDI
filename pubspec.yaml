@@ -32,7 +32,10 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  bitmap: ^0.1.2
+  bitmap:
+    git:
+      url: https://github.com/featherbear/flutter-bitmap.git
+      ref: 641c149227c2e0cac8008dcd465cde397b64d412
 
 dev_dependencies:
   flutter_test:
