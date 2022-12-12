@@ -76,9 +76,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _connectNDI(NDISource source) async {
     if (activeSource != null) {
+      debugPrint("Disconnecting from previous NDI source");
       FlutterNdi.stopListen(activeSource!);
-      // activeSource = null;
     }
+
+    debugPrint("Connecting to NDI source: ${source.name}");
 
     _receivedFrameCount = 0;
     processingReady = true;
@@ -97,6 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
         .cast<VideoFrameData>()
         .listen((frame) async {
       _receivedFrameCount++;
+
+      // Rate limit frame decodes
       if (processingReady) {
         processingReady = false;
 
