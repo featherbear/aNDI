@@ -103,13 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // Rate limit frame decodes
       if (processingReady) {
         processingReady = false;
-
-        RGBAFrame frameData = await compute<VideoFrameData, RGBAFrame>(
-            VideoFrameData_to_RGBAFrame, frame);
-
-        // https://github.com/flutter/flutter/issues/33641
-        displaySource = Image.memory(frameData, gaplessPlayback: true);
-        // MemoryImage
+        displaySource = await VideoFrameData_to_Image(frame);
         processingReady = true;
       }
 
