@@ -65,7 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _doFindNDI() async {
     await FlutterNdi.initPlugin();
-    var sources = FlutterNdi.findSources(); // Find sources in func stack
+    var sources = FlutterNdi.findSources();
 
     setState(() {
       _sources = sources;

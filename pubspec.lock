@@ -8,15 +8,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.9.0"
-  bitmap:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "641c149227c2e0cac8008dcd465cde397b64d412"
-      resolved-ref: "641c149227c2e0cac8008dcd465cde397b64d412"
-      url: "https://github.com/featherbear/flutter-bitmap.git"
-    source: git
-    version: "0.1.2"
   boolean_selector:
     dependency: transitive
     description:
