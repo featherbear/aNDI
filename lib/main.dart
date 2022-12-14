@@ -58,7 +58,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Widget? displaySource;
 
-  int _receivedFrameCount = 0;
+  int _renderedFramesCount = 0;
   bool processingReady = true;
 
   List<NDISource>? _sources;
@@ -82,30 +82,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
     debugPrint("Connecting to NDI source: ${source.name}");
 
-    _receivedFrameCount = 0;
-    processingReady = true;
+    _renderedFramesCount = 0;
 
     // https://medium.com/@hugand/capture-photos-from-camera-using-image-stream-with-flutter-e9af94bc2bee
 
-    // TODO: Don't process all frames
-    // If too many frames are received at the same time, too many compute threads are started
+    final pair = await FlutterNdi.subscribe(source);
+    activeSource = pair.item1;
+    final controlPort = pair.item2;
 
-    // https://api.dart.dev/stable/2.13.4/dart-async/StreamConsumer-class.html
-    // https://dart.dev/tutorials/language/streams
-    // https://dart.academy/streams-and-sinks-in-dart-and-flutter/
-    // https://kikt.gitee.io/flutter-doc/dart-async/Stream/pipe.html
+    activeSource!.cast<VideoFrameData>().listen((frame) async {
+      displaySource = await VideoFrameData_to_Image(frame);
+      _renderedFramesCount++;
 
-    (activeSource = FlutterNdi.listenToFrameData(source))
-        .cast<VideoFrameData>()
-        .listen((frame) async {
-      _receivedFrameCount++;
-
-      // Rate limit frame decodes
-      if (processingReady) {
-        processingReady = false;
-        displaySource = await VideoFrameData_to_Image(frame);
-        processingReady = true;
-      }
+      controlPort.send(true);
 
       setState(() {});
     });
@@ -122,7 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             displaySource ?? Text("NDI not started"),
-            Text(_receivedFrameCount.toString()),
+            Text(_renderedFramesCount.toString()),
             ...((_sources != null)
                 ? (_sources!.isNotEmpty
                     ? _sources!
