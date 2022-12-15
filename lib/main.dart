@@ -86,7 +86,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // https://medium.com/@hugand/capture-photos-from-camera-using-image-stream-with-flutter-e9af94bc2bee
 
-    final pair = await FlutterNdi.subscribe(source);
+    final pair = await FlutterNdi.subscribe(
+        source: source, bandwidth: NDIBandwidth.full);
     activeSource = pair.item1;
     final controlPort = pair.item2;
 
