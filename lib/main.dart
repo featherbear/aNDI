@@ -10,6 +10,8 @@ import 'package:flutter_ndi/libndi_bindings.dart';
 
 import 'imageUtils.dart';
 
+import 'dart:async';
+
 void main() {
   runApp(MyApp());
 }
@@ -59,6 +61,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget? displaySource;
 
   int _renderedFramesCount = 0;
+  int _lastRenderedFramesCount = 0;
+  String fpsText = "0";
+
   bool processingReady = true;
 
   List<NDISource>? _sources;
@@ -74,6 +79,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   ReceivePort? activeSource;
 
+  _MyHomePageState() {
+    Timer.periodic(new Duration(seconds: 1), (timer) {
+      int framesInInterval = _renderedFramesCount - _lastRenderedFramesCount;
+      _lastRenderedFramesCount = _renderedFramesCount;
+      fpsText = framesInInterval.toString();
+    });
+  }
+
   Future<void> _connectNDI(NDISource source) async {
     if (activeSource != null) {
       debugPrint("Disconnecting from previous NDI source");
@@ -86,8 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // https://medium.com/@hugand/capture-photos-from-camera-using-image-stream-with-flutter-e9af94bc2bee
 
-    final pair = await FlutterNdi.subscribe(
-        source: source, bandwidth: NDIBandwidth.full);
+    final pair =
+        await FlutterNdi.subscribe(source: source, bandwidth: NDIBandwidth.low);
     activeSource = pair.item1;
     final controlPort = pair.item2;
 
@@ -111,8 +124,8 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            displaySource ?? Text("NDI not started"),
-            Text(_renderedFramesCount.toString()),
+            displaySource ?? Text("Not connected"),
+            Text('$_renderedFramesCount frames rendered. $fpsText fps'),
             ...((_sources != null)
                 ? (_sources!.isNotEmpty
                     ? _sources!
